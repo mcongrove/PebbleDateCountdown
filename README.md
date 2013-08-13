@@ -2,6 +2,8 @@
 
 A Pebble watch face for counting down the number of days until an event.
 
+![PebbleDateCountdown](https://raw.github.com/mcongrove/PebbleDateCountdown/master/watchface.jpg)
+
 ###Configuration
 
 To configure the watch face, simply open the `config.h` file and change the defined parameters.
