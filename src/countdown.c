@@ -40,6 +40,7 @@ Window window_menu;
 TextLayer label_time;
 TextLayer label_countdown;
 TextLayer label_text_one;
+TextLayer label_text_two;
 SimpleMenuLayer menu_layer;
 SimpleMenuSection menu_sections[NUM_MENU_SECTIONS];
 SimpleMenuItem menu_items[NUM_MENU_ITEMS];
@@ -119,10 +120,8 @@ char* menu_set_month(int index) {
 	
 	snprintf(settingTextMonth, 100, "%d", EVENT_MONTH);
 	
-	if(index) {
-		menu_items[index].subtitle = settingTextMonth;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	}
+	menu_items[index].subtitle = settingTextMonth;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 	
 	return settingTextMonth;
 }
@@ -132,10 +131,8 @@ char* menu_set_day(int index) {
 	
 	snprintf(settingTextDay, 100, "%d", EVENT_DAY);
 	
-	if(index) {
-		menu_items[index].subtitle = settingTextDay;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	}
+	menu_items[index].subtitle = settingTextDay;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 	
 	return settingTextDay;
 }
@@ -145,10 +142,8 @@ char* menu_set_year(int index) {
 	
 	snprintf(settingTextYear, 100, "%d", EVENT_YEAR);
 	
-	if(index) {
-		menu_items[index].subtitle = settingTextYear;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	}
+	menu_items[index].subtitle = settingTextYear;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 	
 	return settingTextYear;
 }
@@ -158,10 +153,8 @@ char* menu_set_hour(int index) {
 	
 	snprintf(settingTextHour, 100, "%d", EVENT_HOUR);
 	
-	if(index) {
-		menu_items[index].subtitle = settingTextHour;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	}
+	menu_items[index].subtitle = settingTextHour;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 	
 	return settingTextHour;
 }
@@ -171,10 +164,8 @@ char* menu_set_minute(int index) {
 	
 	snprintf(settingTextMinute, 100, "%d", EVENT_MINUTE);
 	
-	if(index) {
-		menu_items[index].subtitle = settingTextMinute;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	}
+	menu_items[index].subtitle = settingTextMinute;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 	
 	return settingTextMinute;
 }
@@ -184,23 +175,32 @@ char* menu_set_text(int index) {
 	
 	switch(EVENT_LABEL) {
 		case 0:
-			labelText = "the Wedding";
+			labelText = "";
 			break;
 		case 1:
-			labelText = "Baby Arrives";
+			labelText = "the Wedding";
 			break;
 		case 2:
-			labelText = "My Birthday";
+			labelText = "Baby Arrives";
 			break;
 		case 3:
-			labelText = "Our Anniversary";
+			labelText = "My Birthday";
 			break;
 		case 4:
-			labelText = "Christmas";
+			labelText = "Our Anniversary";
 			break;
 		case 5:
+			labelText = "Christmas";
+			break;
+		case 6:
 			labelText = "the New Year";
 			break;
+	}
+	
+	if(EVENT_LABEL > 0) {
+		text_layer_set_text(&label_text_one, "Days Until");
+	} else {
+		text_layer_set_text(&label_text_one, "Days Remaining");
 	}
 	
 	if(index) {
@@ -335,7 +335,8 @@ void window_load(Window *window) {
 	text_layer_set_text_color(&label_text_one, GColorWhite);
 	text_layer_set_background_color(&label_text_one, GColorClear);
 	text_layer_set_text_alignment(&label_text_one, GTextAlignmentCenter);
-	layer_set_frame(&label_text_one.layer, GRect(0, 110, 144, 25));
+	layer_set_frame(&label_text_one.layer, GRect(0, 110, 144, 23));
+	text_layer_set_text(&label_text_one, "Days Remaining");
 	text_layer_set_font(&label_text_one, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 	layer_add_child(&window_root.layer, &label_text_one.layer);
 	
@@ -343,7 +344,7 @@ void window_load(Window *window) {
 	text_layer_set_text_color(&label_text_two, GColorWhite);
 	text_layer_set_background_color(&label_text_two, GColorClear);
 	text_layer_set_text_alignment(&label_text_two, GTextAlignmentCenter);
-	layer_set_frame(&label_text_two.layer, GRect(0, 110, 144, 25));
+	layer_set_frame(&label_text_two.layer, GRect(0, 130, 144, 23));
 	text_layer_set_font(&label_text_two, fonts_get_system_font(FONT_KEY_GOTHIC_18));
 	layer_add_child(&window_root.layer, &label_text_two.layer);
 }
