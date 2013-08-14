@@ -4,7 +4,6 @@
  * Copyright (c) 2013 Matthew Congrove (http://github.com/mcongrove)
  * 
  * Utilizes portions of code (PDUtils) by Peter Hardy (http://github.com/phardy)
- * Utilizes portions of code (itoa2) by Whiletrue (http://github.com/Whiletru3)
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -47,12 +46,12 @@ SimpleMenuSection menu_sections[NUM_MENU_SECTIONS];
 SimpleMenuItem menu_items[NUM_MENU_ITEMS];
 
 char timeText[] = "00:00";
-char countText[] = "00";
-char settingTextMonth[] = "00";
-char settingTextDay[] = "00";
-char settingTextYear[] = "0000";
-char settingTextHour[] = "00";
-char settingTextMinute[] = "00";
+char countText[4];
+char settingTextMonth[2];
+char settingTextDay[2];
+char settingTextYear[4];
+char settingTextHour[2];
+char settingTextMinute[2];
 
 static int EVENT_MONTH = 1;
 static int EVENT_DAY = 1;
@@ -60,54 +59,6 @@ static int EVENT_YEAR = 2013;
 static int EVENT_HOUR = 12;
 static int EVENT_MINUTE = 0;
 static int EVENT_SECOND = 0;
-
-void itoa2(int num, char* buffer) {
-	const char digits[10] = "0123456789";
-	
-	if(num > 9999 || num < 1) {
-		buffer[0] = ' ';
-		buffer[1] = ' ';
-		buffer[2] = ' ';
-		buffer[3] = ' ';
-	} else if(num > 999) {
-		buffer[0] = digits[num / 1000];
-		
-		if(num % 1000 > 99) {
-			buffer[1] = digits[(num % 1000) / 100];
-		} else {
-			buffer[1] = '0';
-		}
-		
-		if(num % 100 > 9) {
-			buffer[2] = digits[(num % 1000) / 10];
-		} else {
-			buffer[2] = '0';
-		}
-		
-		buffer[3] = digits[num % 10];
-	} else if(num > 99) {
-		buffer[0] = digits[num / 100];
-		
-		if(num % 100 > 9) {
-			buffer[1] = digits[(num % 100) / 10];
-		} else {
-			buffer[1] = '0';
-		}
-		
-		buffer[2] = digits[num % 10];
-		buffer[3] = ' ';
-	} else if(num > 9) {
-		buffer[0] = digits[num / 10];
-		buffer[1] = digits[num % 10];
-		buffer[2] = ' ';
-		buffer[3] = ' ';
-	} else if(num > 0) {
-		buffer[0] = digits[num];
-		buffer[1] = ' ';
-		buffer[2] = ' ';
-		buffer[3] = ' ';
-	}
-}
 
 bool calculate_countdown() {
 	PblTm now;
@@ -133,7 +84,7 @@ bool calculate_countdown() {
 	
 	difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
 	
-	itoa2(difference, &countText[0]);
+	snprintf(countText, 100, "%d", difference);
 	
 	text_layer_set_text(&label_countdown, countText);
 	
@@ -160,7 +111,7 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 char* menu_set_month(int value, int index) {
 	if(EVENT_MONTH > 12) { EVENT_MONTH = 1; }
 	
-	itoa2(EVENT_MONTH, &settingTextMonth[0]);
+	snprintf(settingTextMonth, 100, "%d", EVENT_MONTH);
 	
 	menu_items[index].subtitle = settingTextMonth;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -171,7 +122,7 @@ char* menu_set_month(int value, int index) {
 char* menu_set_day(int value, int index) {
 	if(EVENT_DAY > 31) { EVENT_DAY = 1; }
 	
-	itoa2(EVENT_DAY, &settingTextDay[0]);
+	snprintf(settingTextDay, 100, "%d", EVENT_DAY);
 	
 	menu_items[index].subtitle = settingTextDay;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -182,7 +133,7 @@ char* menu_set_day(int value, int index) {
 char* menu_set_year(int value, int index) {
 	if(EVENT_YEAR > 2020) { EVENT_YEAR = 2013; }
 	
-	itoa2(EVENT_YEAR, &settingTextYear[0]);
+	snprintf(settingTextYear, 100, "%d", EVENT_YEAR);
 	
 	menu_items[index].subtitle = settingTextYear;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -193,7 +144,7 @@ char* menu_set_year(int value, int index) {
 char* menu_set_hour(int value, int index) {
 	if(EVENT_HOUR > 23) { EVENT_HOUR = 0; }
 	
-	itoa2(EVENT_HOUR, &settingTextHour[0]);
+	snprintf(settingTextHour, 100, "%d", EVENT_HOUR);
 	
 	menu_items[index].subtitle = settingTextHour;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -204,7 +155,7 @@ char* menu_set_hour(int value, int index) {
 char* menu_set_minute(int value, int index) {
 	if(EVENT_MINUTE > 59) { EVENT_MINUTE = 0; }
 	
-	itoa2(EVENT_MINUTE, &settingTextMinute[0]);
+	snprintf(settingTextMinute, 100, "%d", EVENT_MINUTE);
 	
 	menu_items[index].subtitle = settingTextMinute;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
