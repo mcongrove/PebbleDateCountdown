@@ -1,17 +1,39 @@
 /**
- * Copyright 2013 Matthew Congrove (http://github.com/mcongrove)
+ * This code is provided under the MIT License.
  * 
- * Please refer to config.h for license information
+ * Copyright (c) 2013 Matthew Congrove (http://github.com/mcongrove)
+ * 
+ * Utilizes portions of code (PDUtils) by Peter Hardy (http://github.com/phardy)
+ * Utilizes portions of code (itoa2) by Whiletrue (http://github.com/Whiletru3)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "pebble_os.h"
 #include "pebble_app.h"
 #include "pebble_fonts.h"
 #include "PDutils.h"
-#include "config.h"
 
+#define APP_UUID { 0x35, 0xBA, 0x1E, 0x8E, 0x25, 0x65, 0x4C, 0x78, 0x95, 0xF6, 0xF9, 0x33, 0x53, 0x30, 0x8B, 0x04 }
+#define APP_TYPE APP_INFO_STANDARD_APP
 #define NUM_MENU_SECTIONS 1
 #define NUM_MENU_ITEMS 5
+#define LABEL_ROW "Days Remaining"
 
 PBL_APP_INFO(APP_UUID, "Countdown", "Matthew Congrove", 1, 0, RESOURCE_ID_IMAGE_MENU_ICON, APP_TYPE);
 
@@ -19,34 +41,34 @@ Window window_root;
 Window window_menu;
 TextLayer label_time;
 TextLayer label_countdown;
-TextLayer label_row_one;
-TextLayer label_row_two;
+TextLayer label_row;
 SimpleMenuLayer menu_layer;
 SimpleMenuSection menu_sections[NUM_MENU_SECTIONS];
 SimpleMenuItem menu_items[NUM_MENU_ITEMS];
 
 char timeText[] = "00:00";
 char countText[] = "00";
+char settingTextMonth[] = "00";
+char settingTextDay[] = "00";
+char settingTextYear[] = "0000";
+char settingTextHour[] = "00";
+char settingTextMinute[] = "00";
 
-int VAL_MONTH = 1;
-int VAL_DAY = 1;
-int VAL_YEAR = 2013;
-int VAL_HOUR = 12;
-int VAL_MINUTE = 0;
+static int EVENT_MONTH = 1;
+static int EVENT_DAY = 1;
+static int EVENT_YEAR = 2013;
+static int EVENT_HOUR = 12;
+static int EVENT_MINUTE = 0;
+static int EVENT_SECOND = 0;
 
 void itoa2(int num, char* buffer) {
 	const char digits[10] = "0123456789";
-	int iSize = 0;
 	
-	buffer[iSize] = ' ';
-	
-	if(num > 9999) {
-		buffer[0] = '9';
-		buffer[1] = '9';
-		buffer[2] = '9';
-		buffer[3] = '9';
-		
-		iSize = 4;
+	if(num > 9999 || num < 1) {
+		buffer[0] = ' ';
+		buffer[1] = ' ';
+		buffer[2] = ' ';
+		buffer[3] = ' ';
 	} else if(num > 999) {
 		buffer[0] = digits[num / 1000];
 		
@@ -63,8 +85,6 @@ void itoa2(int num, char* buffer) {
 		}
 		
 		buffer[3] = digits[num % 10];
-		
-		iSize = 3;
 	} else if(num > 99) {
 		buffer[0] = digits[num / 100];
 		
@@ -75,33 +95,28 @@ void itoa2(int num, char* buffer) {
 		}
 		
 		buffer[2] = digits[num % 10];
-		
-		iSize = 3;
+		buffer[3] = ' ';
 	} else if(num > 9) {
 		buffer[0] = digits[num / 10];
 		buffer[1] = digits[num % 10];
-		
-		iSize = 2;
-	} else {
-		buffer[0] = '0';
-		buffer[1] = digits[num];
-		
-		iSize = 1;
+		buffer[2] = ' ';
+		buffer[3] = ' ';
+	} else if(num > 0) {
+		buffer[0] = digits[num];
+		buffer[1] = ' ';
+		buffer[2] = ' ';
+		buffer[3] = ' ';
 	}
 }
 
-void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
-	(void)ctx;
-	(void)t;
-	
+bool calculate_countdown() {
 	PblTm now;
 	PblTm event;
-	
 	time_t seconds_now;
 	time_t seconds_event;
 	int difference;
 	char *time_format;
-	static char countText[] = "00";
+	static char countText[] = "";
 	
 	get_time(&now);
 	
@@ -112,7 +127,7 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 	event.tm_mday = EVENT_DAY;
 	event.tm_hour = EVENT_HOUR;
 	event.tm_min = EVENT_MINUTE;
-	event.tm_sec = EVENT_MINUTE;
+	event.tm_sec = EVENT_SECOND;
 	
 	seconds_event = pmktime(&event);
 	
@@ -131,42 +146,92 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 	string_format_time(timeText, sizeof(timeText), time_format, &now);
 	
 	text_layer_set_text(&label_time, timeText);
+	
+	return true;
+}
+
+void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
+	(void)ctx;
+	(void)t;
+	
+	calculate_countdown();
+}
+
+char* menu_set_month(int value, int index) {
+	if(EVENT_MONTH > 12) { EVENT_MONTH = 1; }
+	
+	itoa2(EVENT_MONTH, &settingTextMonth[0]);
+	
+	menu_items[index].subtitle = settingTextMonth;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	
+	return settingTextMonth;
+}
+
+char* menu_set_day(int value, int index) {
+	if(EVENT_DAY > 31) { EVENT_DAY = 1; }
+	
+	itoa2(EVENT_DAY, &settingTextDay[0]);
+	
+	menu_items[index].subtitle = settingTextDay;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	
+	return settingTextDay;
+}
+
+char* menu_set_year(int value, int index) {
+	if(EVENT_YEAR > 2020) { EVENT_YEAR = 2013; }
+	
+	itoa2(EVENT_YEAR, &settingTextYear[0]);
+	
+	menu_items[index].subtitle = settingTextYear;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	
+	return settingTextYear;
+}
+
+char* menu_set_hour(int value, int index) {
+	if(EVENT_HOUR > 23) { EVENT_HOUR = 0; }
+	
+	itoa2(EVENT_HOUR, &settingTextHour[0]);
+	
+	menu_items[index].subtitle = settingTextHour;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	
+	return settingTextHour;
+}
+
+char* menu_set_minute(int value, int index) {
+	if(EVENT_MINUTE > 59) { EVENT_MINUTE = 0; }
+	
+	itoa2(EVENT_MINUTE, &settingTextMinute[0]);
+	
+	menu_items[index].subtitle = settingTextMinute;
+	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	
+	return settingTextMinute;
 }
 
 void menu_select_callback(int index, void *ctx) {
-	static char settingText[] = "00";
-	
 	switch(index) {
 		case 0:
-			VAL_MONTH++;
-			if(VAL_MONTH > 12) { VAL_MONTH = 1; }
-			itoa2(VAL_MONTH, &settingText[0]);
+			menu_set_month(EVENT_MONTH++, index);
 			break;
 		case 1:
-			VAL_DAY++;
-			if(VAL_DAY > 31) { VAL_DAY = 1; }
-			itoa2(VAL_DAY, &settingText[0]);
+			menu_set_day(EVENT_DAY++, index);
 			break;
 		case 2:
-			VAL_YEAR++;
-			static char settingText[] = "0000";
-			itoa2(VAL_YEAR, &settingText[0]);
+			menu_set_year(EVENT_YEAR++, index);
 			break;
 		case 3:
-			VAL_HOUR++;
-			if(VAL_HOUR > 23) { VAL_HOUR = 0; }
-			itoa2(VAL_HOUR, &settingText[0]);
+			menu_set_hour(EVENT_HOUR++, index);
 			break;
 		case 4:
-			VAL_MINUTE++;
-			if(VAL_MINUTE > 59) { VAL_MINUTE = 0; }
-			itoa2(VAL_MINUTE, &settingText[0]);
+			menu_set_minute(EVENT_MINUTE++, index);
 			break;
 	}
 	
-	menu_items[index].subtitle = settingText;
-	
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	calculate_countdown();
 }
 
 void menu_button_back(ClickRecognizerRef recognizer, Window *win) {
@@ -187,35 +252,36 @@ void menu_open() {
 	
 	menu_items[0] = (SimpleMenuItem){
 		.title = "Month",
-		.subtitle = "1",
+		.subtitle = menu_set_month(EVENT_MONTH, 0),
 		.callback = menu_select_callback
 	};
 	
 	menu_items[1] = (SimpleMenuItem){
 		.title = "Day",
-		.subtitle = "1",
+		.subtitle = menu_set_day(EVENT_DAY, 1),
 		.callback = menu_select_callback
 	};
 	
 	menu_items[2] = (SimpleMenuItem){
 		.title = "Year",
-		.subtitle = "2013",
+		.subtitle = menu_set_year(EVENT_YEAR, 2),
 		.callback = menu_select_callback
 	};
 	
 	menu_items[3] = (SimpleMenuItem){
 		.title = "Hour",
-		.subtitle = "0",
+		.subtitle = menu_set_hour(EVENT_HOUR, 3),
 		.callback = menu_select_callback
 	};
 	
 	menu_items[4] = (SimpleMenuItem){
 		.title = "Minute",
-		.subtitle = "00",
+		.subtitle = menu_set_minute(EVENT_MINUTE, 4),
 		.callback = menu_select_callback
 	};
 	
 	menu_sections[0] = (SimpleMenuSection){
+		.title = "Event Date Settings",
 		.num_items = NUM_MENU_ITEMS,
 		.items = menu_items,
 	};
@@ -251,23 +317,14 @@ void window_load(Window *window) {
 	text_layer_set_font(&label_countdown, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49));
 	layer_add_child(&window_root.layer, &label_countdown.layer);
 	
-	text_layer_init(&label_row_one, window_root.layer.frame);
-	text_layer_set_text_color(&label_row_one, GColorWhite);
-	text_layer_set_background_color(&label_row_one, GColorClear);
-	text_layer_set_text_alignment(&label_row_one, GTextAlignmentCenter);
-	layer_set_frame(&label_row_one.layer, GRect(0, 110, 144, 23));
-	text_layer_set_text(&label_row_one, LABEL_ROW_1);
-	text_layer_set_font(&label_row_one, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-	layer_add_child(&window_root.layer, &label_row_one.layer);
-	
-	text_layer_init(&label_row_two, window_root.layer.frame);
-	text_layer_set_text_color(&label_row_two, GColorWhite);
-	text_layer_set_background_color(&label_row_two, GColorClear);
-	text_layer_set_text_alignment(&label_row_two, GTextAlignmentCenter);
-	layer_set_frame(&label_row_two.layer, GRect(0, 130, 144, 23));
-	text_layer_set_text(&label_row_two, LABEL_ROW_2);
-	text_layer_set_font(&label_row_two, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-	layer_add_child(&window_root.layer, &label_row_two.layer);
+	text_layer_init(&label_row, window_root.layer.frame);
+	text_layer_set_text_color(&label_row, GColorWhite);
+	text_layer_set_background_color(&label_row, GColorClear);
+	text_layer_set_text_alignment(&label_row, GTextAlignmentCenter);
+	layer_set_frame(&label_row.layer, GRect(0, 110, 144, 25));
+	text_layer_set_text(&label_row, LABEL_ROW);
+	text_layer_set_font(&label_row, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	layer_add_child(&window_root.layer, &label_row.layer);
 }
 
 void handle_init(AppContextRef ctx) {
