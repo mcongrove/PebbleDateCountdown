@@ -47,11 +47,11 @@ SimpleMenuItem menu_items[NUM_MENU_ITEMS];
 
 char timeText[] = "00:00";
 char countText[4];
-char settingTextMonth[2];
-char settingTextDay[2];
-char settingTextYear[4];
-char settingTextHour[2];
-char settingTextMinute[2];
+char settingTextMonth[10];
+char settingTextDay[10];
+char settingTextYear[10];
+char settingTextHour[10];
+char settingTextMinute[10];
 
 static int EVENT_MONTH = 1;
 static int EVENT_DAY = 1;
