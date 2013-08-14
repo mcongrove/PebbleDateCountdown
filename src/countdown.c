@@ -27,9 +27,7 @@ SimpleMenuItem menu_items[NUM_MENU_ITEMS];
 
 char timeText[] = "00:00";
 char countText[] = "00";
-char settingText[] = "00";
 
-int VAL = 0;
 int VAL_MONTH = 1;
 int VAL_DAY = 1;
 int VAL_YEAR = 2013;
@@ -131,42 +129,40 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 	}
 	
 	string_format_time(timeText, sizeof(timeText), time_format, &now);
+	
 	text_layer_set_text(&label_time, timeText);
 }
 
 void menu_select_callback(int index, void *ctx) {
 	static char settingText[] = "00";
-	static int VAL = 0;;
 	
 	switch(index) {
 		case 0:
 			VAL_MONTH++;
 			if(VAL_MONTH > 12) { VAL_MONTH = 1; }
-			VAL = VAL_MONTH;
+			itoa2(VAL_MONTH, &settingText[0]);
 			break;
 		case 1:
 			VAL_DAY++;
 			if(VAL_DAY > 31) { VAL_DAY = 1; }
-			VAL = VAL_DAY;
+			itoa2(VAL_DAY, &settingText[0]);
 			break;
 		case 2:
 			VAL_YEAR++;
-			VAL = VAL_YEAR;
 			static char settingText[] = "0000";
+			itoa2(VAL_YEAR, &settingText[0]);
 			break;
 		case 3:
 			VAL_HOUR++;
 			if(VAL_HOUR > 23) { VAL_HOUR = 0; }
-			VAL = VAL_HOUR;
+			itoa2(VAL_HOUR, &settingText[0]);
 			break;
 		case 4:
 			VAL_MINUTE++;
 			if(VAL_MINUTE > 59) { VAL_MINUTE = 0; }
-			VAL = VAL_MINUTE;
+			itoa2(VAL_MINUTE, &settingText[0]);
 			break;
 	}
-	
-	itoa2(VAL, &settingText[0]);
 	
 	menu_items[index].subtitle = settingText;
 	
