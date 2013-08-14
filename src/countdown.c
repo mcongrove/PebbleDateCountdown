@@ -27,6 +27,14 @@ SimpleMenuItem menu_items[NUM_MENU_ITEMS];
 
 char timeText[] = "00:00";
 char countText[] = "00";
+char settingText[] = "00";
+
+int VAL = 0;
+int VAL_MONTH = 1;
+int VAL_DAY = 1;
+int VAL_YEAR = 2013;
+int VAL_HOUR = 12;
+int VAL_MINUTE = 0;
 
 void itoa2(int num, char* buffer) {
 	const char digits[10] = "0123456789";
@@ -34,16 +42,35 @@ void itoa2(int num, char* buffer) {
 	
 	buffer[iSize] = ' ';
 	
-	if(num > 999) {
+	if(num > 9999) {
 		buffer[0] = '9';
 		buffer[1] = '9';
 		buffer[2] = '9';
+		buffer[3] = '9';
+		
+		iSize = 4;
+	} else if(num > 999) {
+		buffer[0] = digits[num / 1000];
+		
+		if(num % 1000 > 99) {
+			buffer[1] = digits[(num % 1000) / 100];
+		} else {
+			buffer[1] = '0';
+		}
+		
+		if(num % 100 > 9) {
+			buffer[2] = digits[(num % 1000) / 10];
+		} else {
+			buffer[2] = '0';
+		}
+		
+		buffer[3] = digits[num % 10];
 		
 		iSize = 3;
 	} else if(num > 99) {
 		buffer[0] = digits[num / 100];
 		
-		if(num%100 > 9) {
+		if(num % 100 > 9) {
 			buffer[1] = digits[(num % 100) / 10];
 		} else {
 			buffer[1] = '0';
@@ -58,7 +85,8 @@ void itoa2(int num, char* buffer) {
 		
 		iSize = 2;
 	} else {
-		buffer[0] = digits[num % 10];
+		buffer[0] = '0';
+		buffer[1] = digits[num];
 		
 		iSize = 1;
 	}
@@ -107,11 +135,40 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 }
 
 void menu_select_callback(int index, void *ctx) {
+	static char settingText[] = "00";
+	static int VAL = 0;;
+	
 	switch(index) {
 		case 0:
-			menu_items[index].subtitle = "Hi";
+			VAL_MONTH++;
+			if(VAL_MONTH > 12) { VAL_MONTH = 1; }
+			VAL = VAL_MONTH;
+			break;
+		case 1:
+			VAL_DAY++;
+			if(VAL_DAY > 31) { VAL_DAY = 1; }
+			VAL = VAL_DAY;
+			break;
+		case 2:
+			VAL_YEAR++;
+			VAL = VAL_YEAR;
+			static char settingText[] = "0000";
+			break;
+		case 3:
+			VAL_HOUR++;
+			if(VAL_HOUR > 23) { VAL_HOUR = 0; }
+			VAL = VAL_HOUR;
+			break;
+		case 4:
+			VAL_MINUTE++;
+			if(VAL_MINUTE > 59) { VAL_MINUTE = 0; }
+			VAL = VAL_MINUTE;
 			break;
 	}
+	
+	itoa2(VAL, &settingText[0]);
+	
+	menu_items[index].subtitle = settingText;
 	
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
 }
@@ -128,40 +185,38 @@ void menu_window_click_provider(ClickConfig **config, Window *win) {
 void menu_open() {
 	window_init(&window_menu, "Menu");
 	window_set_fullscreen(&window_menu, true);
-	window_set_background_color(&window_menu, GColorBlack);
+	window_set_background_color(&window_menu, GColorWhite);
 	window_stack_push(&window_menu, true);
 	window_set_click_config_provider(&window_menu, (ClickConfigProvider) menu_window_click_provider);
 	
-	int counter = 0;
-	
-	menu_items[counter++] = (SimpleMenuItem){
+	menu_items[0] = (SimpleMenuItem){
 		.title = "Month",
-		.subtitle = "Hi",
-		.callback = NULL
+		.subtitle = "1",
+		.callback = menu_select_callback
 	};
 	
-	menu_items[counter++] = (SimpleMenuItem){
+	menu_items[1] = (SimpleMenuItem){
 		.title = "Day",
-		.subtitle = "Hi",
-		.callback = NULL
+		.subtitle = "1",
+		.callback = menu_select_callback
 	};
 	
-	menu_items[counter++] = (SimpleMenuItem){
+	menu_items[2] = (SimpleMenuItem){
 		.title = "Year",
-		.subtitle = "Hi",
-		.callback = NULL
+		.subtitle = "2013",
+		.callback = menu_select_callback
 	};
 	
-	menu_items[counter++] = (SimpleMenuItem){
+	menu_items[3] = (SimpleMenuItem){
 		.title = "Hour",
-		.subtitle = "Hi",
-		.callback = NULL
+		.subtitle = "0",
+		.callback = menu_select_callback
 	};
 	
-	menu_items[counter++] = (SimpleMenuItem){
+	menu_items[4] = (SimpleMenuItem){
 		.title = "Minute",
-		.subtitle = "Hi",
-		.callback = NULL
+		.subtitle = "00",
+		.callback = menu_select_callback
 	};
 	
 	menu_sections[0] = (SimpleMenuSection){
