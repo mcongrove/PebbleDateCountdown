@@ -84,6 +84,10 @@ bool calculate_countdown() {
 	
 	difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
 	
+	if(difference < 0) {
+		difference = 0;
+	}
+	
 	snprintf(countText, 100, "%d", difference);
 	
 	text_layer_set_text(&label_countdown, countText);
