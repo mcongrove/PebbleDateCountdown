@@ -118,7 +118,7 @@ void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
 char* menu_set_month(int index) {
 	if(EVENT_MONTH > 12) { EVENT_MONTH = 1; }
 	
-	snprintf(settingTextMonth, 100, "%d", EVENT_MONTH);
+	snprintf(settingTextMonth, 100, "%02d", EVENT_MONTH);
 	
 	menu_items[index].subtitle = settingTextMonth;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -129,7 +129,7 @@ char* menu_set_month(int index) {
 char* menu_set_day(int index) {
 	if(EVENT_DAY > 31) { EVENT_DAY = 1; }
 	
-	snprintf(settingTextDay, 100, "%d", EVENT_DAY);
+	snprintf(settingTextDay, 100, "%02d", EVENT_DAY);
 	
 	menu_items[index].subtitle = settingTextDay;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -151,7 +151,7 @@ char* menu_set_year(int index) {
 char* menu_set_hour(int index) {
 	if(EVENT_HOUR > 23) { EVENT_HOUR = 0; }
 	
-	snprintf(settingTextHour, 100, "%d", EVENT_HOUR);
+	snprintf(settingTextHour, 100, "%02d", EVENT_HOUR);
 	
 	menu_items[index].subtitle = settingTextHour;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
@@ -162,7 +162,7 @@ char* menu_set_hour(int index) {
 char* menu_set_minute(int index) {
 	if(EVENT_MINUTE > 59) { EVENT_MINUTE = 0; }
 	
-	snprintf(settingTextMinute, 100, "%d", EVENT_MINUTE);
+	snprintf(settingTextMinute, 100, "%02d", EVENT_MINUTE);
 	
 	menu_items[index].subtitle = settingTextMinute;
 	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
