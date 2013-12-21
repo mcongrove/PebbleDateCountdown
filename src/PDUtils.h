@@ -5,6 +5,6 @@
   This code is released to the public domain.
 */
 
-time_t pmktime (PblTm *tmptr);
-PblTm *pgmtime (const time_t *timer);
-char *pstrtok(char *s1, const char *s2);
+time_t p_mktime(struct tm *tmptr);
+char *p_strtok(char *s1, const char *s2);
+long int p_strtol(const char *nptr, char **endptr, int base);
