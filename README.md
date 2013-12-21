@@ -1,4 +1,4 @@
-#PebbleDateCountdown
+#Date Countdown for Pebble
 
 A Pebble watch app for counting down the number of days until an event.
 
