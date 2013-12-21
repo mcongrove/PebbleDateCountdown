@@ -11,7 +11,8 @@ Pebble.addEventListener("showConfiguration", function(e) {
 			  "&month=" + encodeURIComponent(options["1"][1]) +
 			  "&year=" + encodeURIComponent(options["1"][2]) +
 			  "&hour=" + encodeURIComponent(options["1"][3]) +
-			  "&minute=" + encodeURIComponent(options["1"][4]);
+			  "&minute=" + encodeURIComponent(options["1"][4]) +
+			  "&label=" + encodeURIComponent(options["2"]);
 	
 	Pebble.openURL(url);
 });

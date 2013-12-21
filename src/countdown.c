@@ -30,6 +30,7 @@ static int EVENT_DAY = 1;
 static int EVENT_YEAR = 2014;
 static int EVENT_HOUR = 12;
 static int EVENT_MINUTE = 0;
+static char EVENT_LABEL[255] = "the event";
 
 Window *window;
 TextLayer *label_layer_time;
@@ -45,6 +46,7 @@ char* labelText;
 enum {
 	KEY_THEME,
 	KEY_EVENT,
+	KEY_LABEL,
 	KEY_DAY,
 	KEY_MONTH,
 	KEY_YEAR,
@@ -108,6 +110,16 @@ static void set_theme() {
 	layer_set_hidden(inverter_layer_get_layer(inverter_layer), hide);
 }
 
+static void set_label() {
+	if (persist_exists(KEY_LABEL)) {
+		persist_read_string(KEY_LABEL, EVENT_LABEL, 255);
+	}
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED LABEL: %s", EVENT_LABEL);
+	
+	text_layer_set_text(label_layer_text_bottom, EVENT_LABEL);
+}
+
 static void set_date() {
 	if (persist_exists(KEY_DAY) && persist_exists(KEY_MONTH) && persist_exists(KEY_YEAR) && persist_exists(KEY_HOUR) && persist_exists(KEY_MINUTE)) {
 		EVENT_DAY = persist_read_int(KEY_DAY);
@@ -131,6 +143,7 @@ static void set_date() {
 static void in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *theme_tuple = dict_find(iter, KEY_THEME);
 	Tuple *event_tuple = dict_find(iter, KEY_EVENT);
+	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
 	
 	if (theme_tuple) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING THEME: %s", theme_tuple->value->cstring);
@@ -138,6 +151,14 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		persist_write_string(KEY_THEME, theme_tuple->value->cstring);
 		
 		set_theme();
+	}
+	
+	if (label_tuple) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING LABEL: %s", label_tuple->value->cstring);
+
+		persist_write_string(KEY_LABEL, label_tuple->value->cstring);
+		
+		set_label();
 	}
 	
 	if (event_tuple) {
