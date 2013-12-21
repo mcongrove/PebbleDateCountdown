@@ -1,0 +1,33 @@
+{
+  "uuid": "23c290b6-9c7a-40cc-9221-06ec9daa3714",
+  "shortName": "Date Countdown",
+  "longName": "Date Countdown",
+	"companyName": "Matthew Congrove",
+	"versionCode": 2,
+	"versionLabel": "2.0",
+	"watchapp": {
+		"watchface": false
+	},
+	"capabilities": [
+		"configurable"
+	],
+	"appKeys": {
+		"theme": 0,
+		"event": 1,
+		"day": 2,
+		"month": 3,
+		"year": 4,
+		"hour": 5,
+		"minute": 6
+	},
+	"resources": {
+		"media": [
+			{
+				"menuIcon": true,
+				"type": "png",
+				"name": "IMAGE_MENU_ICON",
+				"file": "images/menu_icon.png"
+			}
+		]
+	}
+}

@@ -22,356 +22,216 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#include "pebble_os.h"
-#include "pebble_app.h"
-#include "pebble_fonts.h"
-#include "PDutils.h"
-
-#define APP_UUID { 0x35, 0xBA, 0x1E, 0x8E, 0x25, 0x65, 0x4C, 0x78, 0x95, 0xF6, 0xF9, 0x33, 0x53, 0x30, 0x8B, 0x04 }
-#define APP_TYPE APP_INFO_STANDARD_APP
-#define NUM_MENU_SECTIONS 1
-#define NUM_MENU_ITEMS 6
-
-PBL_APP_INFO(APP_UUID, "Countdown", "Matthew Congrove", 1, 0, RESOURCE_ID_IMAGE_MENU_ICON, APP_TYPE);
-
-Window window_root;
-Window window_menu;
-TextLayer label_time;
-TextLayer label_countdown;
-TextLayer label_text_one;
-TextLayer label_text_two;
-SimpleMenuLayer menu_layer;
-SimpleMenuSection menu_sections[NUM_MENU_SECTIONS];
-SimpleMenuItem menu_items[NUM_MENU_ITEMS];
-
-char timeText[] = "00:00";
-char countText[4];
-char* labelText;
-char settingTextMonth[10];
-char settingTextDay[10];
-char settingTextYear[10];
-char settingTextHour[10];
-char settingTextMinute[10];
+#include <pebble.h>
+#include <PDUtils.h>
 
 static int EVENT_MONTH = 1;
 static int EVENT_DAY = 1;
-static int EVENT_YEAR = 2013;
+static int EVENT_YEAR = 2014;
 static int EVENT_HOUR = 12;
 static int EVENT_MINUTE = 0;
-static int EVENT_SECOND = 0;
-static int EVENT_LABEL = 0;
 
-bool calculate_countdown() {
-	PblTm now;
-	PblTm event;
-	time_t seconds_now;
-	time_t seconds_event;
-	int difference;
+Window *window;
+TextLayer *label_layer_time;
+TextLayer *label_layer_countdown;
+TextLayer *label_layer_text_top;
+TextLayer *label_layer_text_bottom;
+InverterLayer *inverter_layer;
+static char theme[6] = "dark";
+char timeText[] = "00:00";
+char countText[4];
+char* labelText;
+
+enum {
+	KEY_THEME,
+	KEY_EVENT,
+	KEY_DAY,
+	KEY_MONTH,
+	KEY_YEAR,
+	KEY_HOUR,
+	KEY_MINUTE
+};
+
+static void calculate_countdown(struct tm *time_now) {
 	char *time_format;
 	static char countText[] = "";
 	
-	get_time(&now);
-	
-	seconds_now = pmktime(&now);
-	
-	event.tm_year = EVENT_YEAR - 1900;
-	event.tm_mon = EVENT_MONTH - 1;
-	event.tm_mday = EVENT_DAY;
-	event.tm_hour = EVENT_HOUR;
-	event.tm_min = EVENT_MINUTE;
-	event.tm_sec = EVENT_SECOND;
-	
-	seconds_event = pmktime(&event);
-	
-	difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
-	
-	if(difference < 0) {
-		difference = 0;
-	}
-	
-	snprintf(countText, 100, "%d", difference);
-	
-	text_layer_set_text(&label_countdown, countText);
-	
+	// Set the current time display
 	if(clock_is_24h_style()) {
 		time_format = "%R";
 	} else {
 		time_format = "%I:%M";
 	}
 	
-	string_format_time(timeText, sizeof(timeText), time_format, &now);
-	text_layer_set_text(&label_time, timeText);
+	strftime(timeText, sizeof(timeText), time_format, time_now);
 	
-	text_layer_set_text(&label_text_two, labelText);
+	text_layer_set_text(label_layer_time, timeText);
 	
-	return true;
-}
-
-void handle_minute_tick(AppContextRef ctx, PebbleTickEvent *t) {
-	(void)ctx;
-	(void)t;
+	// Set the current time
+	time_t seconds_now = p_mktime(time_now);
 	
-	calculate_countdown();
-}
-
-char* menu_set_month(int index) {
-	if(EVENT_MONTH > 12) { EVENT_MONTH = 1; }
+	// Set the event time
+	time_now->tm_year = EVENT_YEAR - 1900;
+	time_now->tm_mon = EVENT_MONTH - 1;
+	time_now->tm_mday = EVENT_DAY;
+	time_now->tm_hour = EVENT_HOUR;
+	time_now->tm_min = EVENT_MINUTE;
+	time_now->tm_sec = 0;
 	
-	snprintf(settingTextMonth, 100, "%02d", EVENT_MONTH);
+	time_t seconds_event = p_mktime(time_now);
 	
-	menu_items[index].subtitle = settingTextMonth;
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	// Determine the time difference
+	int difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
 	
-	return settingTextMonth;
-}
-
-char* menu_set_day(int index) {
-	if(EVENT_DAY > 31) { EVENT_DAY = 1; }
-	
-	snprintf(settingTextDay, 100, "%02d", EVENT_DAY);
-	
-	menu_items[index].subtitle = settingTextDay;
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	
-	return settingTextDay;
-}
-
-char* menu_set_year(int index) {
-	if(EVENT_YEAR > 2020) { EVENT_YEAR = 2013; }
-	
-	snprintf(settingTextYear, 100, "%d", EVENT_YEAR);
-	
-	menu_items[index].subtitle = settingTextYear;
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	
-	return settingTextYear;
-}
-
-char* menu_set_hour(int index) {
-	if(EVENT_HOUR > 23) { EVENT_HOUR = 0; }
-	
-	snprintf(settingTextHour, 100, "%02d", EVENT_HOUR);
-	
-	menu_items[index].subtitle = settingTextHour;
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	
-	return settingTextHour;
-}
-
-char* menu_set_minute(int index) {
-	if(EVENT_MINUTE > 59) { EVENT_MINUTE = 0; }
-	
-	snprintf(settingTextMinute, 100, "%02d", EVENT_MINUTE);
-	
-	menu_items[index].subtitle = settingTextMinute;
-	layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
-	
-	return settingTextMinute;
-}
-
-char* menu_set_text(int index) {
-	if(EVENT_LABEL > 5) { EVENT_LABEL = 0; }
-	
-	switch(EVENT_LABEL) {
-		case 0:
-			labelText = "";
-			break;
-		case 1:
-			labelText = "the Wedding";
-			break;
-		case 2:
-			labelText = "Baby Arrives";
-			break;
-		case 3:
-			labelText = "My Birthday";
-			break;
-		case 4:
-			labelText = "Our Anniversary";
-			break;
-		case 5:
-			labelText = "Christmas";
-			break;
-		case 6:
-			labelText = "the New Year";
-			break;
+	if(difference < 0) {
+		difference = 0;
 	}
 	
-	if(EVENT_LABEL > 0) {
-		text_layer_set_text(&label_text_one, "Days Until");
-	} else {
-		text_layer_set_text(&label_text_one, "Days Remaining");
+	// Set the countdown display
+	snprintf(countText, 100, "%d", difference);
+	
+	text_layer_set_text(label_layer_countdown, countText);
+}
+
+static void set_theme() {
+	if (persist_exists(KEY_THEME)) {
+		persist_read_string(KEY_THEME, theme, 6);
 	}
 	
-	if(index) {
-		menu_items[index].subtitle = labelText;
-		layer_mark_dirty(simple_menu_layer_get_layer(&menu_layer));
+	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED THEME: %s", theme);
+	
+	bool hide = strcmp(theme, "light") == 0 ? true : false;
+	
+	layer_set_hidden(inverter_layer_get_layer(inverter_layer), hide);
+}
+
+static void set_date() {
+	if (persist_exists(KEY_DAY) && persist_exists(KEY_MONTH) && persist_exists(KEY_YEAR) && persist_exists(KEY_HOUR) && persist_exists(KEY_MINUTE)) {
+		EVENT_DAY = persist_read_int(KEY_DAY);
+		EVENT_MONTH = persist_read_int(KEY_MONTH);
+		EVENT_YEAR = persist_read_int(KEY_YEAR);
+		EVENT_HOUR = persist_read_int(KEY_HOUR);
+		EVENT_MINUTE = persist_read_int(KEY_MINUTE);
+		
+		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED DAY: %d", EVENT_DAY);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED MONTH: %d", EVENT_MONTH);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED YEAR: %d", EVENT_YEAR);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED HOUR: %d", EVENT_HOUR);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED MINUTE: %d", EVENT_MINUTE);
+		
+		time_t t = time(NULL);
+		struct tm *now = localtime(&t);
+		
+		calculate_countdown(now);
+	}
+}
+
+static void in_received_handler(DictionaryIterator *iter, void *context) {
+	Tuple *theme_tuple = dict_find(iter, KEY_THEME);
+	Tuple *event_tuple = dict_find(iter, KEY_EVENT);
+	
+	if (theme_tuple) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING THEME: %s", theme_tuple->value->cstring);
+
+		persist_write_string(KEY_THEME, theme_tuple->value->cstring);
+		
+		set_theme();
 	}
 	
-	return labelText;
-}
-
-void menu_select_callback(int index, void *ctx) {
-	switch(index) {
-		case 0:
-			EVENT_MONTH++;
-			menu_set_month(index);
-			break;
-		case 1:
-			EVENT_DAY++;
-			menu_set_day(index);
-			break;
-		case 2:
-			EVENT_YEAR++;
-			menu_set_year(index);
-			break;
-		case 3:
-			EVENT_HOUR++;
-			menu_set_hour(index);
-			break;
-		case 4:
-			EVENT_MINUTE++;
-			menu_set_minute(index);
-			break;
-		case 5:
-			EVENT_LABEL++;
-			menu_set_text(index);
-			break;
+	if (event_tuple) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING DAY: %d", event_tuple->value->data[0]);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MONTH: %d", event_tuple->value->data[1]);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING YEAR: %d", event_tuple->value->data[2]);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING HOUR: %d", event_tuple->value->data[3]);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MINUTE: %d", event_tuple->value->data[4]);
+		
+		persist_write_int(KEY_DAY, event_tuple->value->data[0]);
+		persist_write_int(KEY_MONTH, event_tuple->value->data[1]);
+		persist_write_int(KEY_YEAR, event_tuple->value->data[2]);
+		persist_write_int(KEY_HOUR, event_tuple->value->data[3]);
+		persist_write_int(KEY_MINUTE, event_tuple->value->data[4]);
+		
+		set_date();
 	}
-	
-	calculate_countdown();
 }
 
-void menu_button_back(ClickRecognizerRef recognizer, Window *win) {
-	window_stack_pop(true);
+static void in_dropped_handler(AppMessageResult reason, void *context) {
+	
 }
 
-void menu_window_click_provider(ClickConfig **config, Window *win) {
-	config[BUTTON_ID_BACK]->click.handler = (ClickHandler) menu_button_back;
-	config[BUTTON_ID_BACK]->long_click.handler = (ClickHandler) menu_button_back;
+static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
+	calculate_countdown(tick_time);
 }
 
-void menu_open() {
-	window_init(&window_menu, "Menu");
-	window_set_fullscreen(&window_menu, true);
-	window_set_background_color(&window_menu, GColorWhite);
-	window_stack_push(&window_menu, true);
-	window_set_click_config_provider(&window_menu, (ClickConfigProvider) menu_window_click_provider);
+static void init() {
+	app_message_register_inbox_received(in_received_handler);
+	app_message_register_inbox_dropped(in_dropped_handler);
+	app_message_open(64, 0);
 	
-	menu_items[0] = (SimpleMenuItem){
-		.title = "Month",
-		.subtitle = menu_set_month(0),
-		.callback = menu_select_callback
-	};
+	window = window_create();
+	window_set_background_color(window, GColorWhite);
+	window_set_fullscreen(window, true);
+	window_stack_push(window, true);
 	
-	menu_items[1] = (SimpleMenuItem){
-		.title = "Day",
-		.subtitle = menu_set_day(1),
-		.callback = menu_select_callback
-	};
+	Layer *window_layer = window_get_root_layer(window);
+	GRect bounds = layer_get_bounds(window_layer);
 	
-	menu_items[2] = (SimpleMenuItem){
-		.title = "Year",
-		.subtitle = menu_set_year(2),
-		.callback = menu_select_callback
-	};
+	// Add time layer
+	label_layer_time = text_layer_create(GRect(0, 13, 144, 30));
+	text_layer_set_text_color(label_layer_time, GColorBlack);
+	text_layer_set_background_color(label_layer_time, GColorClear);
+	text_layer_set_text_alignment(label_layer_time, GTextAlignmentCenter);
+	text_layer_set_font(label_layer_time, fonts_get_system_font(FONT_KEY_GOTHIC_28));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(label_layer_time));
 	
-	menu_items[3] = (SimpleMenuItem){
-		.title = "Hour",
-		.subtitle = menu_set_hour(3),
-		.callback = menu_select_callback
-	};
+	// Add days remaining layer
+	label_layer_countdown = text_layer_create(GRect(0, 56, 144, 55));
+	text_layer_set_text_color(label_layer_countdown, GColorBlack);
+	text_layer_set_background_color(label_layer_countdown, GColorClear);
+	text_layer_set_text_alignment(label_layer_countdown, GTextAlignmentCenter);
+	text_layer_set_font(label_layer_countdown, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(label_layer_countdown));
 	
-	menu_items[4] = (SimpleMenuItem){
-		.title = "Minute",
-		.subtitle = menu_set_minute(4),
-		.callback = menu_select_callback
-	};
+	// Add top text layer
+	label_layer_text_top = text_layer_create(GRect(0, 110, 144, 23));
+	text_layer_set_text_color(label_layer_text_top, GColorBlack);
+	text_layer_set_background_color(label_layer_text_top, GColorClear);
+	text_layer_set_text_alignment(label_layer_text_top, GTextAlignmentCenter);
+	text_layer_set_text(label_layer_text_top, "Days Until");
+	text_layer_set_font(label_layer_text_top, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(label_layer_text_top));
 	
-	menu_items[5] = (SimpleMenuItem){
-		.title = "Days Until...",
-		.subtitle = menu_set_text(5),
-		.callback = menu_select_callback
-	};
+	// Add bottom text layer
+	label_layer_text_bottom = text_layer_create(GRect(0, 130, 144, 23));
+	text_layer_set_text_color(label_layer_text_bottom, GColorBlack);
+	text_layer_set_background_color(label_layer_text_bottom, GColorClear);
+	text_layer_set_text_alignment(label_layer_text_bottom, GTextAlignmentCenter);
+	text_layer_set_font(label_layer_text_bottom, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(label_layer_text_bottom));
 	
-	menu_sections[0] = (SimpleMenuSection){
-		.title = "Event Date Settings",
-		.num_items = NUM_MENU_ITEMS,
-		.items = menu_items,
-	};
+	// Create the inverter layer
+	inverter_layer = inverter_layer_create(bounds);
+	layer_add_child(window_layer, inverter_layer_get_layer(inverter_layer));
 	
-	simple_menu_layer_init(&menu_layer, window_menu.layer.frame, &window_menu, menu_sections, NUM_MENU_SECTIONS, NULL);
+	tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 	
-	layer_add_child(&window_menu.layer, simple_menu_layer_get_layer(&menu_layer));
+	set_theme();
 }
 
-void root_button_select(ClickRecognizerRef recognizer, Window *win) {
-	menu_open();
+static void deinit() {
+	window_destroy(window);
+	text_layer_destroy(label_layer_time);
+	text_layer_destroy(label_layer_countdown);
+	text_layer_destroy(label_layer_text_top);
+	text_layer_destroy(label_layer_text_bottom);
+	inverter_layer_destroy(inverter_layer);
+	
+	tick_timer_service_unsubscribe();
+	app_message_deregister_callbacks();
 }
 
-void root_window_click_provider(ClickConfig **config, Window *win) {
-	config[BUTTON_ID_SELECT]->click.handler = (ClickHandler) root_button_select;
-	config[BUTTON_ID_SELECT]->long_click.handler = (ClickHandler) root_button_select;
-}
-
-void window_load(Window *window) {
-	text_layer_init(&label_time, window_root.layer.frame);
-	text_layer_set_text_color(&label_time, GColorWhite);
-	text_layer_set_background_color(&label_time, GColorClear);
-	text_layer_set_text_alignment(&label_time, GTextAlignmentCenter);
-	layer_set_frame(&label_time.layer, GRect(0, 13, 144, 30));
-	text_layer_set_font(&label_time, fonts_get_system_font(FONT_KEY_GOTHIC_28));
-	layer_add_child(&window_root.layer, &label_time.layer);
-	
-	text_layer_init(&label_countdown, window_root.layer.frame);
-	text_layer_set_text_color(&label_countdown, GColorWhite);
-	text_layer_set_background_color(&label_countdown, GColorClear);
-	text_layer_set_text_alignment(&label_countdown, GTextAlignmentCenter);
-	layer_set_frame(&label_countdown.layer, GRect(0, 56, 144, 55));
-	text_layer_set_font(&label_countdown, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49));
-	layer_add_child(&window_root.layer, &label_countdown.layer);
-	
-	text_layer_init(&label_text_one, window_root.layer.frame);
-	text_layer_set_text_color(&label_text_one, GColorWhite);
-	text_layer_set_background_color(&label_text_one, GColorClear);
-	text_layer_set_text_alignment(&label_text_one, GTextAlignmentCenter);
-	layer_set_frame(&label_text_one.layer, GRect(0, 110, 144, 23));
-	text_layer_set_text(&label_text_one, "Days Remaining");
-	text_layer_set_font(&label_text_one, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-	layer_add_child(&window_root.layer, &label_text_one.layer);
-	
-	text_layer_init(&label_text_two, window_root.layer.frame);
-	text_layer_set_text_color(&label_text_two, GColorWhite);
-	text_layer_set_background_color(&label_text_two, GColorClear);
-	text_layer_set_text_alignment(&label_text_two, GTextAlignmentCenter);
-	layer_set_frame(&label_text_two.layer, GRect(0, 130, 144, 23));
-	text_layer_set_font(&label_text_two, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-	layer_add_child(&window_root.layer, &label_text_two.layer);
-}
-
-void handle_init(AppContextRef ctx) {
-	resource_init_current_app(&APP_RESOURCES);
-	
-	handle_minute_tick(ctx, NULL);
-	
-	window_init(&window_root, "Countdown");
-	window_set_fullscreen(&window_root, true);
-	window_set_background_color(&window_root, GColorBlack);
-	window_stack_push(&window_root, true);
-	window_set_click_config_provider(&window_root, (ClickConfigProvider) root_window_click_provider);
-	window_set_window_handlers(&window_root, (WindowHandlers){
-		.load = window_load
-	});
-}
-
-void pbl_main(void *params) {
-	PebbleAppHandlers handlers = {
-		.init_handler = &handle_init,
-		.tick_info = {
-			.tick_handler = &handle_minute_tick,
-			.tick_units = MINUTE_UNIT
-		}
-	};
-	
-	app_event_loop(params, &handlers);
+int main(void) {
+	init();
+	app_event_loop();
+	deinit();
 }
