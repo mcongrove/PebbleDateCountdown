@@ -52,7 +52,10 @@ enum {
 	KEY_MINUTE
 };
 
-static void calculate_countdown(struct tm *time_now) {
+static void calculate_countdown() {
+	time_t t = time(NULL);
+	struct tm *now = localtime(&t);
+	
 	char *time_format;
 	static char countText[] = "";
 	
@@ -63,22 +66,22 @@ static void calculate_countdown(struct tm *time_now) {
 		time_format = "%I:%M";
 	}
 	
-	strftime(timeText, sizeof(timeText), time_format, time_now);
+	strftime(timeText, sizeof(timeText), time_format, now);
 	
 	text_layer_set_text(label_layer_time, timeText);
 	
 	// Set the current time
-	time_t seconds_now = p_mktime(time_now);
+	time_t seconds_now = p_mktime(now);
 	
 	// Set the event time
-	time_now->tm_year = EVENT_YEAR - 1900;
-	time_now->tm_mon = EVENT_MONTH - 1;
-	time_now->tm_mday = EVENT_DAY;
-	time_now->tm_hour = EVENT_HOUR;
-	time_now->tm_min = EVENT_MINUTE;
-	time_now->tm_sec = 0;
+	now->tm_year = EVENT_YEAR + 100;
+	now->tm_mon = EVENT_MONTH - 1;
+	now->tm_mday = EVENT_DAY;
+	now->tm_hour = EVENT_HOUR;
+	now->tm_min = EVENT_MINUTE;
+	now->tm_sec = 0;
 	
-	time_t seconds_event = p_mktime(time_now);
+	time_t seconds_event = p_mktime(now);
 	
 	// Determine the time difference
 	int difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
@@ -113,16 +116,15 @@ static void set_date() {
 		EVENT_HOUR = persist_read_int(KEY_HOUR);
 		EVENT_MINUTE = persist_read_int(KEY_MINUTE);
 		
+		/*
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED DAY: %d", EVENT_DAY);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED MONTH: %d", EVENT_MONTH);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED YEAR: %d", EVENT_YEAR);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED HOUR: %d", EVENT_HOUR);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED MINUTE: %d", EVENT_MINUTE);
+		*/
 		
-		time_t t = time(NULL);
-		struct tm *now = localtime(&t);
-		
-		calculate_countdown(now);
+		calculate_countdown();
 	}
 }
 
@@ -139,11 +141,13 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 	}
 	
 	if (event_tuple) {
+		/*
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING DAY: %d", event_tuple->value->data[0]);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MONTH: %d", event_tuple->value->data[1]);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING YEAR: %d", event_tuple->value->data[2]);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING HOUR: %d", event_tuple->value->data[3]);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MINUTE: %d", event_tuple->value->data[4]);
+		*/
 		
 		persist_write_int(KEY_DAY, event_tuple->value->data[0]);
 		persist_write_int(KEY_MONTH, event_tuple->value->data[1]);
@@ -160,7 +164,7 @@ static void in_dropped_handler(AppMessageResult reason, void *context) {
 }
 
 static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
-	calculate_countdown(tick_time);
+	calculate_countdown();
 }
 
 static void init() {
