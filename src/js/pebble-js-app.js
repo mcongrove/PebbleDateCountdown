@@ -7,11 +7,11 @@ Pebble.addEventListener("showConfiguration", function(e) {
 	
 	var url = "http://sens.li/date-countdown/?" +
 			  "theme=" + encodeURIComponent(options["0"]) +
-			  "&day=" + encodeURIComponent(options["1"]) +
-			  "&month=" + encodeURIComponent(options["2"]) +
-			  "&year=" + encodeURIComponent(options["3"]) +
-			  "&hour=" + encodeURIComponent(options["4"]) +
-			  "&minute=" + encodeURIComponent(options["5"]);
+			  "&day=" + encodeURIComponent(options["1"][0]) +
+			  "&month=" + encodeURIComponent(options["1"][1]) +
+			  "&year=" + encodeURIComponent(options["1"][2]) +
+			  "&hour=" + encodeURIComponent(options["1"][3]) +
+			  "&minute=" + encodeURIComponent(options["1"][4]);
 	
 	Pebble.openURL(url);
 });
