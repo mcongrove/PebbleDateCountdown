@@ -5,7 +5,7 @@ Pebble.addEventListener("ready", function(e) {
 Pebble.addEventListener("showConfiguration", function(e) {
 	var options = JSON.parse(window.localStorage.getItem("options"));
 	
-	var url = "http://sens.li/date-countdown/?" +
+	var url = "http://wearewearable.com/date-countdown/?" +
 			  "theme=" + encodeURIComponent(options["0"]) +
 			  "&day=" + encodeURIComponent(options["1"][0]) +
 			  "&month=" + encodeURIComponent(options["1"][1]) +

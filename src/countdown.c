@@ -22,7 +22,7 @@ TextLayer *label_layer_countdown;
 TextLayer *label_layer_text_top;
 TextLayer *label_layer_text_bottom;
 InverterLayer *inverter_layer;
-static char theme[6] = "dark";
+static char THEME[6] = "dark";
 char timeText[] = "00:00";
 char countText[4];
 char* labelText;
@@ -84,12 +84,12 @@ static void calculate_countdown() {
 
 static void set_theme() {
 	if (persist_exists(KEY_THEME)) {
-		persist_read_string(KEY_THEME, theme, 6);
+		persist_read_string(KEY_THEME, THEME, 6);
 	}
 	
-	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED THEME: %s", theme);
+	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED THEME: %s", THEME);
 	
-	bool hide = strcmp(theme, "light") == 0 ? true : false;
+	bool hide = strcmp(THEME, "light") == 0 ? true : false;
 	
 	layer_set_hidden(inverter_layer_get_layer(inverter_layer), hide);
 }
@@ -133,6 +133,7 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING THEME: %s", theme_tuple->value->cstring);
 
 		persist_write_string(KEY_THEME, theme_tuple->value->cstring);
+		strncpy(THEME, theme_tuple->value->cstring, 6);
 		
 		set_theme();
 	}
