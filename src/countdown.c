@@ -9,6 +9,7 @@
 #include <pebble.h>
 #include <PDUtils.h>
 
+static char THEME[6] = "dark";
 static int EVENT_MONTH = 1;
 static int EVENT_DAY = 1;
 static int EVENT_YEAR = 2014;
@@ -22,7 +23,6 @@ TextLayer *label_layer_countdown;
 TextLayer *label_layer_text_top;
 TextLayer *label_layer_text_bottom;
 InverterLayer *inverter_layer;
-static char THEME[6] = "dark";
 char timeText[] = "00:00";
 char countText[4];
 char* labelText;
@@ -130,8 +130,6 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
 	
 	if (theme_tuple) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING THEME: %s", theme_tuple->value->cstring);
-
 		persist_write_string(KEY_THEME, theme_tuple->value->cstring);
 		strncpy(THEME, theme_tuple->value->cstring, 6);
 		
@@ -139,22 +137,12 @@ static void in_received_handler(DictionaryIterator *iter, void *context) {
 	}
 	
 	if (label_tuple) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING LABEL: %s", label_tuple->value->cstring);
-
 		persist_write_string(KEY_LABEL, label_tuple->value->cstring);
 		
 		set_label();
 	}
 	
 	if (event_tuple) {
-		/*
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING DAY: %d", event_tuple->value->data[0]);
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MONTH: %d", event_tuple->value->data[1]);
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING YEAR: %d", event_tuple->value->data[2]);
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING HOUR: %d", event_tuple->value->data[3]);
-		APP_LOG(APP_LOG_LEVEL_INFO, "SETTING MINUTE: %d", event_tuple->value->data[4]);
-		*/
-		
 		persist_write_int(KEY_DAY, event_tuple->value->data[0]);
 		persist_write_int(KEY_MONTH, event_tuple->value->data[1]);
 		persist_write_int(KEY_YEAR, event_tuple->value->data[2]);

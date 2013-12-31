@@ -21,8 +21,6 @@ Pebble.addEventListener("webviewclosed", function(e) {
 	if(e.response) {
 		var options = JSON.parse(decodeURIComponent(e.response));
 		
-		console.log(JSON.stringify(options));
-		
 		window.localStorage.setItem("options", JSON.stringify(options));
 		
 		Pebble.sendAppMessage(options,
