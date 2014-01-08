@@ -1,6 +1,10 @@
 # Date Countdown for Pebble
 
-A Pebble watch face for counting down the number of days until an event. This code is open sourced under the Apache 2.0 license.
+A Pebble watch app for counting down the number of days until an event.
+
+Colors can be inverted and the event date, time, and label can be set by accessing the settings in the Pebble application.
+
+This code is open sourced under the Apache 2.0 license.
 
 ![Date Countdown](https://raw.github.com/mcongrove/PebbleDateCountdown/master/watchface.jpg)
 
