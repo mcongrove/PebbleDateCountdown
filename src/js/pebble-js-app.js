@@ -5,14 +5,17 @@ Pebble.addEventListener("ready", function(e) {
 Pebble.addEventListener("showConfiguration", function(e) {
 	var options = JSON.parse(window.localStorage.getItem("options"));
 	
-	var url = "http://wearewearable.com/date-countdown/?v=2.0" +
-			  "&theme=" + encodeURIComponent(options["0"]) +
-			  "&day=" + encodeURIComponent(options["1"][0]) +
-			  "&month=" + encodeURIComponent(options["1"][1]) +
-			  "&year=" + encodeURIComponent(options["1"][2]) +
-			  "&hour=" + encodeURIComponent(options["1"][3]) +
-			  "&minute=" + encodeURIComponent(options["1"][4]) +
-			  "&label=" + encodeURIComponent(options["2"]);
+	var url = "http://wearewearable.com/date-countdown/?v=2.0";
+	
+	if(options != null) {
+		url += "&theme=" + encodeURIComponent(options["0"]) +
+			"&day=" + encodeURIComponent(options["1"][0]) +
+			"&month=" + encodeURIComponent(options["1"][1]) +
+			"&year=" + encodeURIComponent(options["1"][2]) +
+			"&hour=" + encodeURIComponent(options["1"][3]) +
+			"&minute=" + encodeURIComponent(options["1"][4]) +
+			"&label=" + encodeURIComponent(options["2"]);
+	}
 	
 	Pebble.openURL(url);
 });
