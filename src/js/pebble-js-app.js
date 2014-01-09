@@ -8,13 +8,13 @@ Pebble.addEventListener("showConfiguration", function(e) {
 	var url = "http://wearewearable.com/date-countdown/?v=2.0";
 	
 	if(options != null) {
-		url += "&theme=" + encodeURIComponent(options["0"]) +
-			"&day=" + encodeURIComponent(options["1"][0]) +
-			"&month=" + encodeURIComponent(options["1"][1]) +
-			"&year=" + encodeURIComponent(options["1"][2]) +
-			"&hour=" + encodeURIComponent(options["1"][3]) +
-			"&minute=" + encodeURIComponent(options["1"][4]) +
-			"&label=" + encodeURIComponent(options["2"]);
+		url += "&theme=" + (options["0"] ? encodeURIComponent(options["0"]) : "") +
+			"&day=" + (options["1"] && options["1"][0] ? encodeURIComponent(options["1"][0]) : "") +
+			"&month=" + (options["1"] && options["1"][1] ? encodeURIComponent(options["1"][1]) : "") +
+			"&year=" + (options["1"] && options["1"][2] ? encodeURIComponent(options["1"][2]) : "") +
+			"&hour=" + (options["1"] && options["1"][3] != null ? encodeURIComponent(options["1"][3]) : "") +
+			"&minute=" + (options["1"] && options["1"][4] != null ? encodeURIComponent(options["1"][4]) : "") +
+			"&label=" + (options["2"] ? encodeURIComponent(options["2"]) : "");
 	}
 	
 	Pebble.openURL(url);
