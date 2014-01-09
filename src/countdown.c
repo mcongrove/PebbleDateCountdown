@@ -214,6 +214,8 @@ static void init() {
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 	
 	set_theme();
+	set_date();
+	set_label();
 }
 
 static void deinit() {
