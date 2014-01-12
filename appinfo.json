@@ -3,8 +3,8 @@
   "shortName": "Date Countdown",
   "longName": "Date Countdown",
 	"companyName": "Matthew Congrove",
-	"versionCode": 2,
-	"versionLabel": "2.0",
+	"versionCode": 3,
+	"versionLabel": "2.1",
 	"watchapp": {
 		"watchface": true
 	},
@@ -13,13 +13,12 @@
 	],
 	"appKeys": {
 		"theme": 0,
-		"event": 1,
-		"day": 2,
-		"month": 3,
+		"label": 1,
+		"month": 2,
+		"day": 3,
 		"year": 4,
 		"hour": 5,
-		"minute": 6,
-		"label": 7
+		"minute": 6
 	},
 	"resources": {
 		"media": [

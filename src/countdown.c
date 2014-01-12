@@ -4,7 +4,7 @@
  * 
  * Copyright (c) 2013 Matthew Congrove (http://github.com/mcongrove)
  * 
- * Utilizes portions of code (PDUtils) by Peter Hardy (http://github.com/phardy)
+ * Utilizes the PDUtils library by Peter Hardy (http://github.com/phardy)
  */
 #include <pebble.h>
 #include <PDUtils.h>
@@ -12,7 +12,7 @@
 static char THEME[6] = "dark";
 static int EVENT_MONTH = 1;
 static int EVENT_DAY = 1;
-static int EVENT_YEAR = 2014;
+static int EVENT_YEAR = 14;
 static int EVENT_HOUR = 12;
 static int EVENT_MINUTE = 0;
 static char EVENT_LABEL[255] = "the event";
@@ -28,59 +28,14 @@ char countText[4];
 char* labelText;
 
 enum {
-	KEY_THEME,
-	KEY_EVENT,
-	KEY_LABEL,
-	KEY_DAY,
-	KEY_MONTH,
-	KEY_YEAR,
-	KEY_HOUR,
-	KEY_MINUTE
+	KEY_THEME = 0x0,
+	KEY_LABEL = 0x1,
+	KEY_MONTH = 0x2,
+	KEY_DAY = 0x3,
+	KEY_YEAR = 0x4,
+	KEY_HOUR = 0x5,
+	KEY_MINUTE = 0x6
 };
-
-static void calculate_countdown() {
-	time_t t = time(NULL);
-	struct tm *now = localtime(&t);
-	
-	char *time_format;
-	static char countText[] = "";
-	
-	// Set the current time display
-	if(clock_is_24h_style()) {
-		time_format = "%R";
-	} else {
-		time_format = "%I:%M";
-	}
-	
-	strftime(timeText, sizeof(timeText), time_format, now);
-	
-	text_layer_set_text(label_layer_time, timeText);
-	
-	// Set the current time
-	time_t seconds_now = p_mktime(now);
-	
-	// Set the event time
-	now->tm_year = EVENT_YEAR + 100;
-	now->tm_mon = EVENT_MONTH - 1;
-	now->tm_mday = EVENT_DAY;
-	now->tm_hour = EVENT_HOUR;
-	now->tm_min = EVENT_MINUTE;
-	now->tm_sec = 0;
-	
-	time_t seconds_event = p_mktime(now);
-	
-	// Determine the time difference
-	int difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
-	
-	if(difference < 0) {
-		difference = 0;
-	}
-	
-	// Set the countdown display
-	snprintf(countText, 100, "%d", difference);
-	
-	text_layer_set_text(label_layer_countdown, countText);
-}
 
 static void set_theme() {
 	if (persist_exists(KEY_THEME)) {
@@ -105,7 +60,11 @@ static void set_label() {
 }
 
 static void set_date() {
-	if (persist_exists(KEY_DAY) && persist_exists(KEY_MONTH) && persist_exists(KEY_YEAR) && persist_exists(KEY_HOUR) && persist_exists(KEY_MINUTE)) {
+	if (persist_exists(KEY_DAY)
+			&& persist_exists(KEY_MONTH)
+			&& persist_exists(KEY_YEAR)
+			&& persist_exists(KEY_HOUR)
+			&& persist_exists(KEY_MINUTE)) {
 		EVENT_DAY = persist_read_int(KEY_DAY);
 		EVENT_MONTH = persist_read_int(KEY_MONTH);
 		EVENT_YEAR = persist_read_int(KEY_YEAR);
@@ -119,38 +78,76 @@ static void set_date() {
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED HOUR: %d", EVENT_HOUR);
 		APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED MINUTE: %d", EVENT_MINUTE);
 		*/
-		
-		calculate_countdown();
 	}
+}
+
+static void calculate_countdown() {
+	time_t t = time(NULL);
+	struct tm *now = localtime(&t);
+	
+	char *time_format;
+	static char countText[] = "";
+	
+	// Set the current time display
+	if(clock_is_24h_style()) {
+		time_format = "%R";
+	} else {
+		time_format = "%I:%M";
+	}
+	
+	strftime(timeText, sizeof(timeText), time_format, now);
+	
+	text_layer_set_text(label_layer_time, timeText);
+	
+	// Set the current time
+	time_t seconds_now = p_mktime(now);
+	
+	// Set the event time
+	set_date();
+	
+	now->tm_year = EVENT_YEAR + 100;
+	now->tm_mon = EVENT_MONTH - 1;
+	now->tm_mday = EVENT_DAY;
+	now->tm_hour = EVENT_HOUR;
+	now->tm_min = EVENT_MINUTE;
+	now->tm_sec = 0;
+	
+	time_t seconds_event = p_mktime(now);
+	
+	// Determine the time difference
+	int difference = ((((seconds_event - seconds_now) / 60) / 60) / 24);
+	
+	if(difference < 0) {
+		difference = 0;
+	}
+	
+	// Set the countdown display
+	snprintf(countText, 100, "%d", difference);
+	
+	text_layer_set_text(label_layer_countdown, countText);
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *theme_tuple = dict_find(iter, KEY_THEME);
-	Tuple *event_tuple = dict_find(iter, KEY_EVENT);
 	Tuple *label_tuple = dict_find(iter, KEY_LABEL);
+	Tuple *month_tuple = dict_find(iter, KEY_MONTH);
+	Tuple *day_tuple = dict_find(iter, KEY_DAY);
+	Tuple *year_tuple = dict_find(iter, KEY_YEAR);
+	Tuple *hour_tuple = dict_find(iter, KEY_HOUR);
+	Tuple *minute_tuple = dict_find(iter, KEY_MINUTE);
 	
-	if (theme_tuple) {
-		persist_write_string(KEY_THEME, theme_tuple->value->cstring);
-		strncpy(THEME, theme_tuple->value->cstring, 6);
-		
-		set_theme();
-	}
+	theme_tuple ? persist_write_string(KEY_THEME, theme_tuple->value->cstring) : false;
+	label_tuple ? persist_write_string(KEY_LABEL, label_tuple->value->cstring) : false;
+	month_tuple ? persist_write_int(KEY_MONTH, month_tuple->value->uint8) : false;
+	day_tuple ? persist_write_int(KEY_DAY, day_tuple->value->uint8) : false;
+	year_tuple ? persist_write_int(KEY_YEAR, year_tuple->value->uint8) : false;
+	hour_tuple ? persist_write_int(KEY_HOUR, hour_tuple->value->uint8) : false;
+	minute_tuple ? persist_write_int(KEY_MINUTE, minute_tuple->value->uint8) : false;
 	
-	if (label_tuple) {
-		persist_write_string(KEY_LABEL, label_tuple->value->cstring);
-		
-		set_label();
-	}
-	
-	if (event_tuple) {
-		persist_write_int(KEY_DAY, event_tuple->value->data[0]);
-		persist_write_int(KEY_MONTH, event_tuple->value->data[1]);
-		persist_write_int(KEY_YEAR, event_tuple->value->data[2]);
-		persist_write_int(KEY_HOUR, event_tuple->value->data[3]);
-		persist_write_int(KEY_MINUTE, event_tuple->value->data[4]);
-		
-		set_date();
-	}
+	set_theme();
+	set_label();
+	set_date();
+	calculate_countdown();
 }
 
 static void in_dropped_handler(AppMessageResult reason, void *context) {
@@ -164,7 +161,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
 static void init() {
 	app_message_register_inbox_received(in_received_handler);
 	app_message_register_inbox_dropped(in_dropped_handler);
-	app_message_open(64, 0);
+	app_message_open(128, 0);
 	
 	window = window_create();
 	window_set_background_color(window, GColorWhite);
