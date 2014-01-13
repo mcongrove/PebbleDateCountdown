@@ -42,11 +42,11 @@ static void set_theme() {
 		persist_read_string(KEY_THEME, THEME, 6);
 	}
 	
-	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED THEME: %s", THEME);
-	
 	bool hide = strcmp(THEME, "light") == 0 ? true : false;
 	
 	layer_set_hidden(inverter_layer_get_layer(inverter_layer), hide);
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED THEME: %s", THEME);
 }
 
 static void set_label() {
@@ -54,9 +54,9 @@ static void set_label() {
 		persist_read_string(KEY_LABEL, EVENT_LABEL, 255);
 	}
 	
-	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED LABEL: %s", EVENT_LABEL);
-	
 	text_layer_set_text(label_layer_text_bottom, EVENT_LABEL);
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "SELECTED LABEL: %s", EVENT_LABEL);
 }
 
 static void set_date() {

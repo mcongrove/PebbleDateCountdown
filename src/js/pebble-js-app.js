@@ -1,4 +1,4 @@
-var config_url = "http://wearewearable.com/date-countdown/?v=2.0";
+var config_url = "http://wearewearable.com/date-countdown/?v=2.1";
 
 Pebble.addEventListener("ready", function(e) {
 
