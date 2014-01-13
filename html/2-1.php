@@ -30,7 +30,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 				</li>
 			</ul>
 			
-			<input type="hidden" id="theme" data-type="string" value="<?php echo isset($_GET['theme']) && $_GET['theme'] != 'undefined' ? $_GET['theme'] : 'dark'; ?>" />
+			<input type="hidden" id="theme" data-type="string" />
 			
 			<br class="clear" />
 		</div>
@@ -40,7 +40,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 				Days until...
 			</h2>
 			
-			<input type="text" id="label" data-type="string" placeholder="the event" value="<?php echo isset($_GET['label']) && $_GET['label'] != 'undefined' ? $_GET['label'] : ''; ?>" />
+			<input type="text" id="label" data-type="string" placeholder="the event" />
 			
 			<br class="clear" />
 		</div>
@@ -61,9 +61,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 						
 							for($i = 1, $x = 12; $i <= $x; $i++)
 							{
-								$selected = $_GET['month'] && $_GET['month'] == $i ? ' selected' : '';
-								
-								echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+								echo '<option value="' . $i . '">' . $i . '</option>';
 							}
 						
 						?>
@@ -79,9 +77,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 						
 							for($i = 1, $x = 31; $i <= $x; $i++)
 							{
-								$selected = $_GET['day'] && $_GET['day'] == $i ? ' selected' : '';
-								
-								echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+								echo '<option value="' . $i . '">' . $i . '</option>';
 							}
 						
 						?>
@@ -97,9 +93,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 						
 							for($i = date('Y'), $x = (date('Y') + 10); $i <= $x; $i++)
 							{
-								$selected = $_GET['year'] && ($_GET['year'] + 2000) == $i ? ' selected' : '';
-								
-								echo '<option value="' . ($i - 2000) . '"' . $selected . '>' . $i . '</option>';
+								echo '<option value="' . ($i - 2000) . '">' . $i . '</option>';
 							}
 						
 						?>
@@ -119,8 +113,6 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 						
 							for($i = 0, $x = 23; $i <= $x; $i++)
 							{
-								$selected = $_GET['hour'] && $_GET['hour'] == $i ? ' selected' : '';
-								
 								if($i == 0)
 								{
 									$hour = 'Midnight';
@@ -132,7 +124,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 									$hour = ($i - 12) . ' PM';
 								}
 								
-								echo '<option value="' . $i . '"' . $selected . '>' . $hour . '</option>';
+								echo '<option value="' . $i . '">' . $hour . '</option>';
 							}
 						
 						?>
@@ -148,9 +140,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 						
 							for($i = 0, $x = 59; $i <= $x; $i++)
 							{
-								$selected = $_GET['minute'] && $_GET['minute'] == $i ? ' selected' : '';
-								
-								echo '<option value="' . $i . '"' . $selected . '>' . sprintf("%02s", $i) . '</option>';
+								echo '<option value="' . $i . '">' . sprintf("%02s", $i) . '</option>';
 							}
 						
 						?>
