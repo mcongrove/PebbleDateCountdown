@@ -2,20 +2,17 @@
 
 	if($_GET['v'] && strlen($_GET['v']) >= 3)
 	{
-		switch($_GET['v'])
+		$version = str_replace('.', '-', $_GET['v']);
+		$filename = dirname(__FILE__) . '/' . $version . '.php';
+		
+		if(file_exists($filename))
 		{
-			case '2.0':
-				require('2-0.php');
-				break;
-			case '2.1':
-				require('2-1.php');
-				break;
-			default:
-				require('2-0.php');
-				break;
+			require($filename);
+		} else {
+			echo '<h1>Error</h1><p>Unable to locate configuration page for this version.</p><p>Please contact an <a href="mailto:me@mattcongrove.com">administrator</a>.</p>';
 		}
 	} else {
-		require('2-0.php');
+		echo '<h1>Error</h1><p>Unable to locate configuration page for this version.</p><p>Please contact an <a href="mailto:me@mattcongrove.com">administrator</a>.</p>';
 	}
 
 ?>
